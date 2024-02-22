@@ -35,9 +35,12 @@
  */
 
 #include "executor.h"
-#include "filters.h"
-#include "device_event.h"
+#if defined(EMBEDDED)
 #include <scgms/generated/filters.h>
+#elif
+#include "filters.h"
+#endif
+#include "device_event.h"
 
 #if defined(FREERTOS) || defined (WASM)
 CFilter_Executor::CFilter_Executor(const GUID filter_id, scgms::IFilter *next_filter, scgms::TOn_Filter_Created on_filter_created, const void* on_filter_created_data) :

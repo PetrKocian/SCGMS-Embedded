@@ -36,9 +36,11 @@
 
 #include "persistent_chain_configuration.h"
 #include "configuration_link.h"
-#include "filters.h"
-
+#if defined(EMBEDDED)
 #include <scgms/generated/filters.h>
+#elif
+#include "filters.h"
+#endif
 
 #include <scgms/rtl/FilterLib.h>
 #include <scgms/rtl/manufactory.h>

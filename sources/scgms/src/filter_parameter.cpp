@@ -35,8 +35,11 @@
  */
 
 #include "filter_parameter.h"
+#if defined(EMBEDDED)
+#include <scgms/generated/filters.h>
+#elif
 #include "filters.h"
-
+#endif
 #include <scgms/rtl/manufactory.h>
 #include <scgms/utils/string_utils.h>
 #include <scgms/rtl/rattime.h>

@@ -36,13 +36,16 @@
 
 #include "composite_filter.h"
 #include "device_event.h"
+#if defined(EMBEDDED)
+#include <scgms/generated/filters.h>
+#elif
 #include "filters.h"
+#endif
 
 #include <scgms/lang/dstrings.h>
 #include <scgms/utils/string_utils.h>
 //#include <scgms/rtl/UILib.h>
 #include <scgms/rtl/hresult.h>
-#include <scgms/generated/filters.h>
 
 #include <map>
 #include <stdexcept>
