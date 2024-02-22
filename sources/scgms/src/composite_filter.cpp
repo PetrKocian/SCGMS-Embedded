@@ -37,7 +37,7 @@
 #include "composite_filter.h"
 #include "device_event.h"
 #if defined(EMBEDDED)
-#include <scgms/generated/filters.h>
+#include <filters/generated/filters.h>
 #elif
 #include "filters.h"
 #endif

@@ -37,7 +37,7 @@
 #include "persistent_chain_configuration.h"
 #include "configuration_link.h"
 #if defined(EMBEDDED)
-#include <scgms/generated/filters.h>
+#include <filters/generated/filters.h>
 #elif
 #include "filters.h"
 #endif

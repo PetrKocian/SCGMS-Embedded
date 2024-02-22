@@ -36,7 +36,7 @@
 
 #include "filter_parameter.h"
 #if defined(EMBEDDED)
-#include <scgms/generated/filters.h>
+#include <filters/generated/filters.h>
 #elif
 #include "filters.h"
 #endif
