@@ -38,7 +38,7 @@
 #include "configuration_link.h"
 #include "filters.h"
 
-#include <scgms/generated/combined_descriptors.h>
+#include <scgms/generated/filters.h>
 
 #include <scgms/rtl/FilterLib.h>
 #include <scgms/rtl/manufactory.h>

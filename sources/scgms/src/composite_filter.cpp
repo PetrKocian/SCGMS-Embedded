@@ -42,7 +42,7 @@
 #include <scgms/utils/string_utils.h>
 //#include <scgms/rtl/UILib.h>
 #include <scgms/rtl/hresult.h>
-#include <scgms/generated/combined_descriptors.h>
+#include <scgms/generated/filters.h>
 
 #include <map>
 #include <stdexcept>

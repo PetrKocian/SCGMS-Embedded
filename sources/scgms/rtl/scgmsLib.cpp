@@ -36,7 +36,7 @@
 
 #include "scgmsLib.h"
 #ifdef EMBEDDED
-#include "generated/combined_descriptors.h"
+#include "generated/filters.h"
 #elif
 #include "FilesystemLib.h"
 #endif
