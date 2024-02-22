@@ -2,7 +2,6 @@
 #include <scgms/rtl/referencedImpl.h>
 #include <scgms/utils/winapi_mapping.h>
 #include <scgms/utils/string_utils.h>
-#include <filters/generated/combined_descriptors.h>
 #include <filters/config.h>
 #include "scgms.h"
 
