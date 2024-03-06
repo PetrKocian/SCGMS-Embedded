@@ -6,7 +6,7 @@
 #include "scgms.h"
 
 #if defined(FREERTOS)
-#include <print.h>
+#include <uart_print.h>
 #endif
 
 #if defined(WASM) || defined (ESP32)

@@ -37,7 +37,7 @@
 
 #ifdef FREERTOS
 extern "C"{
-#include <print.h>
+#include <uart_print.h>
 #include <FreeRTOS/Source/include/portable.h>
 }
 
