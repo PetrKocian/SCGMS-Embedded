@@ -79,7 +79,7 @@ public:
 		for (size_t i = 0; i < Event_Pool_Size; i++) {
 			if (mAllocated_Flags[i]) {
 #if defined(ESP32) || defined(WASM)
-				printf("Leaked device event; logical time: %d\n", mEvents[i].logical_clock());
+				printf("Leaked device event; logical time: %zu\n", mEvents[i].logical_clock());
 #elif defined(FREERTOS)
 				print("Leaked device event; logical time:");
 				print_i(mEvents[i].logical_clock());
