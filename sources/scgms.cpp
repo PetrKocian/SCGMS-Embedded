@@ -18,6 +18,11 @@ void print(const char * str)
 
 scgms::SFilter_Executor Global_Filter_Executor;
 
+const char * get_config_data()
+{
+	return config_data;
+}
+
 void create_level_event(int level_input)
 {
 	scgms::UDevice_Event event{ scgms::NDevice_Event_Code::Level };
@@ -33,7 +38,7 @@ int build_filter_chain(const char*  configuration_input)
 	const char* config;
 	if(configuration_input == NULL)
 	{
-		config = config_data;
+		configuration_input = config_data;
 		print("Creating SCGMS filter chain from config.h");	
 	}
 	else
@@ -52,11 +57,11 @@ int build_filter_chain(const char*  configuration_input)
 		return -1;
 	}
 
-	print(config_data);
+	print(configuration_input);
 	print("------------------------------------------");
 
 	print("Config errors:");
-	configuration->Load_From_Memory(config_data, strlen(config_data), errors.get());
+	configuration->Load_From_Memory(configuration_input, strlen(configuration_input), errors.get());
 	print("------------------------------------------");
 
 	print("Filter executor errors:");
