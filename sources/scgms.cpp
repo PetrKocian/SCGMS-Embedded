@@ -33,6 +33,15 @@ void create_level_event(int level_input)
 	}
 }
 
+void create_shutdown_event()
+{
+	scgms::UDevice_Event event{ scgms::NDevice_Event_Code::Shut_Down };
+	if(Global_Filter_Executor)
+	{
+		Global_Filter_Executor.Execute(std::move(event));
+	}
+}
+
 int build_filter_chain(const char*  configuration_input)
 {
 	const char* config;
