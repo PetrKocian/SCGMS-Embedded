@@ -38,8 +38,8 @@
 #ifdef FREERTOS
 extern "C"{
 #include <freertos/FreeRTOS.h>
-#include <uart_print.h>
 #include <freertos/portable.h>
+#include <uart_print.h>
 }
 
 #endif
@@ -72,11 +72,10 @@ EXTERN_C void* _aligned_malloc(size_t n, size_t alignment)
 #elif defined(FREERTOS)
 	mem = pvPortMalloc(n);
 #endif
-
-#endif
-
 	return mem;
 }
+
+#endif
 
 EXTERN_C void* _aligned_malloc_dbg(size_t n, size_t alignment, const char* filename, int line)
 {
@@ -94,13 +93,15 @@ EXTERN_C void _aligned_free(void* _Block)
 
 EXTERN_C int getenv_s(size_t *len, char *value, size_t valuesz, const char *name)
 {
+	#if !defined(EMBEDDED)
 	char* env = getenv(name);
 	if (!env)
 		return 1;
-
+	
 	if (value)
 		value = env;
-
-	*len = 1;//strlen(env);
+	
+	*len = strlen(env);
+	#endif
 	return 0;
 }
