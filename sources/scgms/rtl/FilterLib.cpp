@@ -207,7 +207,6 @@ namespace scgms
 		bool result = imported::get_filter_descriptors_external(&desc_begin, &desc_end) == S_OK;
 		if (result)
 		{
-			printf("RESULT OK\n");
 			result = false; // we have to find the filter yet
 			for (auto iter = desc_begin; iter != desc_end; iter++)
 				if (iter->id == id)
