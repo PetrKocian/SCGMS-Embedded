@@ -12,7 +12,7 @@
 #if defined(WASM) || defined (ESP32)
 void print(const char * str)
 {
-	printf("%s\r\n", str);
+	printf("%s\n", str);
 }
 #endif
 
