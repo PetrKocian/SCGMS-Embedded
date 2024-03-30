@@ -39,8 +39,9 @@
 #include "DeviceLib.h"
 #include "../iface/UIIface.h"
 #include "../lang/dstrings.h"
-#include "../utils/defines.h"
-
+#if !defined(EMBEDDED)
+#include "../rtl/FilesystemLib.h"
+#endif
 #include <vector>
 #include <string>
 #include <functional>
@@ -64,7 +65,9 @@ namespace scgms {
 		std::wstring as_wstring(HRESULT &rc, bool read_interpreted);
 		HRESULT set_wstring(const std::wstring &str);
 		HRESULT set_wstring(const wchar_t *str);	
-
+		#if !defined(EMBEDDED)
+		filesystem::path as_filepath(HRESULT& rc);
+		#endif
 		int64_t as_int(HRESULT &rc);
 
 		double as_double(HRESULT &rc);
@@ -110,7 +113,15 @@ namespace scgms {
 				return Read_Parameter<std::wstring>(name, &SFilter_Parameter::as_wstring, default_value, read_interpreted);
 			}
 
-
+#if !defined(EMBEDDED)
+			filesystem::path Read_File_Path(const wchar_t* name, const filesystem::path& default_value = {}) {
+#ifndef ANDROID
+				return Read_Parameter<filesystem::path>(name, &SFilter_Parameter::as_filepath, default_value);
+#else
+				return filesystem::path{ Read_String(name, false, default_value.wstring()) };
+#endif
+			}
+#endif
 			int64_t Read_Int(const wchar_t* name, const int64_t default_value = std::numeric_limits<int64_t>::max()) const {
 				return Read_Parameter<int64_t>(name, &SFilter_Parameter::as_int, default_value);
 			}
@@ -399,6 +410,44 @@ namespace scgms {
 	};
 
 	#pragma warning( pop )
+
+	class SDiscrete_Model : public virtual refcnt::SReferenced<scgms::IDiscrete_Model> {
+	public:
+		SDiscrete_Model();
+		SDiscrete_Model(const GUID &id, const std::vector<double> &parameters, scgms::SFilter output);
+	};
+
+	class SDrawing_Filter_Inspection : public std::shared_ptr<IDrawing_Filter_Inspection> {
+	public:
+		SDrawing_Filter_Inspection() noexcept {};
+		SDrawing_Filter_Inspection(const SFilter &drawing_filter);
+	};
+
+	class SDrawing_Filter_Inspection_v2 : public std::shared_ptr<IDrawing_Filter_Inspection_v2> {
+	public:
+		SDrawing_Filter_Inspection_v2() noexcept {};
+		SDrawing_Filter_Inspection_v2(const SFilter& drawing_filter);
+	};
+
+	class SLog_Filter_Inspection : public std::shared_ptr<ILog_Filter_Inspection> {
+	public:
+		SLog_Filter_Inspection() noexcept {};
+		SLog_Filter_Inspection(const SFilter &log_filter);
+		bool pop(std::shared_ptr<refcnt::wstr_list> &list);
+	};
+
+	class SSignal_Error_Inspection : public virtual refcnt::SReferenced<scgms::ISignal_Error_Inspection> {
+	public:
+		SSignal_Error_Inspection() noexcept {};
+		SSignal_Error_Inspection(const SFilter &signal_error_filter);
+	};
+
+	class SEvent_Export_Filter_Inspection : public std::shared_ptr<scgms::IEvent_Export_Filter_Inspection> {
+	public:
+		SEvent_Export_Filter_Inspection() noexcept {};
+		SEvent_Export_Filter_Inspection(const SFilter &event_export_filter);
+	};
+
 
 		//returns if, and what variable name encodes the string
 		//e.g.; 5 returns <false, empty> and $(var_name) returns <true, "var_name">

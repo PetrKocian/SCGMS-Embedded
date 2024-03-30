@@ -35,10 +35,18 @@
  */
 
 #include "../iface/referencedIface.h"
-#include <scgms/src/device_event.h>
 
 #include "DeviceLib.h"
 #include "rattime.h"
+#include "scgmsLib.h"
+
+namespace imported {
+	namespace {
+		//all these vars have _external suffix not to confuse linker when building the libraries
+		scgms::TCreate_Signal create_signal_external = scgms::factory::resolve_symbol<scgms::TCreate_Signal>("create_signal");
+		scgms::TCreate_Device_Event create_device_event_external = scgms::factory::resolve_symbol<scgms::TCreate_Device_Event>("create_device_event");
+	}
+}
 
 
 bool scgms::SModel_Parameter_Vector::set(const std::vector<double> &params) {
@@ -71,6 +79,56 @@ bool scgms::SModel_Parameter_Vector::empty() const {
 	return get()->empty() == S_OK;
 }
 
+
+scgms::SSignal::SSignal(scgms::STime_Segment segment, const GUID &signal_id) :
+	scgms::SSignal::SSignal(segment, signal_id, Invalid_GUID) {
+}
+
+scgms::SSignal::SSignal(scgms::STime_Segment segment, const GUID& signal_id, const GUID& approx_id) {
+	scgms::ISignal* signal;
+	if (imported::create_signal_external(&signal_id, segment.get(), approx_id == Invalid_GUID ? nullptr : &approx_id, &signal) == S_OK) {
+		reset(signal, [](scgms::ISignal* obj_to_release) { if (obj_to_release != nullptr) obj_to_release->Release(); });
+	}
+}
+
+scgms::WSignal::WSignal(ISignal *signal) : mSignal(signal) {};
+
+HRESULT scgms::WSignal::Get_Discrete_Levels(double* const times, double* const levels, const size_t count, size_t *filled) const {
+	return mSignal ? mSignal->Get_Discrete_Levels(times, levels, count, filled) : E_FAIL;
+}
+
+HRESULT scgms::WSignal::Get_Discrete_Bounds(scgms::TBounds* const time_bounds, scgms::TBounds* const level_bounds, size_t *level_count) const {
+	return mSignal ? mSignal->Get_Discrete_Bounds(time_bounds, level_bounds, level_count) : E_FAIL;
+}
+
+
+scgms::WTime_Segment::WTime_Segment(ITime_Segment *segment) : mSegment(segment) {
+
+}
+
+scgms::SSignal scgms::WTime_Segment::Get_Signal(const GUID &signal_id) {
+	scgms::SSignal result;
+	ISignal *obj = nullptr;
+
+	if (mSegment)
+		if (mSegment->Get_Signal(&signal_id, &obj) == S_OK)
+			result = refcnt::make_shared_reference_ext<scgms::SSignal, scgms::ISignal>(obj, false);
+
+	return result;
+}
+
+scgms::SSignal scgms::STime_Segment::Get_Signal(const GUID &signal_id) {
+	scgms::SSignal result;
+	ISignal *obj = nullptr;
+	scgms::ITime_Segment *segment = get();
+
+	if (segment)
+		if (segment->Get_Signal(&signal_id, &obj) == S_OK)
+			result = refcnt::make_shared_reference_ext<scgms::SSignal, scgms::ISignal>(obj, false);
+
+	return result;
+}
+
 scgms::TDevice_Event* Get_Raw_Event(scgms::IDevice_Event *event) {
 	scgms::TDevice_Event* result;
 	if ((event == nullptr) || (event->Raw(&result) != S_OK)) result = nullptr;
@@ -80,7 +138,7 @@ scgms::TDevice_Event* Get_Raw_Event(scgms::IDevice_Event *event) {
 
 scgms::IDevice_Event* Create_Event(const scgms::NDevice_Event_Code code) {
 	scgms::IDevice_Event *result;
-	if (create_device_event(code, &result) != S_OK) result = nullptr;
+	if (imported::create_device_event_external(code, &result) != S_OK) result = nullptr;
 	assert(result != nullptr);
 	return result;
 }
@@ -205,4 +263,72 @@ bool scgms::UDevice_Event::is_info_event() const {
 
 bool scgms::UDevice_Event::is_control_event() const {
 	return major_type() == scgms::UDevice_Event_internal::NDevice_Event_Major_Type::control;
+}
+
+
+scgms::CTime_Segment::~CTime_Segment()
+{
+	//
+}
+
+HRESULT IfaceCalling scgms::CTime_Segment::Get_Signal(const GUID *signal_id, scgms::ISignal **signal)
+{
+	auto itr = mSignals.find(*signal_id);
+	if (itr != mSignals.end())
+	{
+		*signal = (*itr).second.get();
+		(*signal)->AddRef();
+		return S_OK;
+	}
+
+	// prefer calculated signal, fall back to measured signal
+	if (imported::create_signal_external(signal_id, this, nullptr, signal) != S_OK) {
+		return E_NOTIMPL;
+	}
+	mSignals[*signal_id] = refcnt::make_shared_reference_ext<scgms::SSignal, scgms::ISignal>(*signal, true);  // true due to creating "clone" of pointer with custom reference counter
+
+	return S_OK;
+}
+
+scgms::STime_Segment scgms::CTime_Segment::Clone()
+{
+	// manufacture new segment
+	scgms::CTime_Segment* cloned;
+	if (Manufacture_Object<scgms::CTime_Segment>(&cloned) != S_OK)
+		return {};
+
+	size_t count;
+	scgms::ISignal* target;
+
+	std::vector<double> tmpTimes, tmpLevels;
+
+	// clone each signal
+	for (auto const& signal : mSignals)
+	{
+		// create signal in cloned object
+		if (cloned->Get_Signal(&signal.first, &target) != S_OK)
+			continue;
+
+		// retrieve discrete bounds (this will fail for calculated signals, which we are not fancy copying)
+		if (signal.second->Get_Discrete_Bounds(nullptr, nullptr, &count) != S_OK)
+			continue;
+
+		if (count == 0)
+			continue;
+
+		// resize to fit
+		tmpTimes.resize(count);
+		tmpLevels.resize(count);
+
+		size_t filled = count;
+
+		// retrieve all values
+		if (signal.second->Get_Discrete_Levels(tmpTimes.data(), tmpLevels.data(), count, &filled) != S_OK)
+			continue;
+
+		// update cloned signal
+		target->Update_Levels(tmpTimes.data(), tmpLevels.data(), filled);
+	}
+
+	return refcnt::make_shared_reference_ext<scgms::STime_Segment, scgms::ITime_Segment>(cloned, false);
 }

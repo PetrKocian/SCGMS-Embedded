@@ -51,6 +51,7 @@ HRESULT Manufacture_Object(I** manufactured, Args... args) {
 	if (tmp) {
 		(*manufactured) = static_cast<I*> (tmp);
 		(*manufactured)->AddRef();
+
 		rc = S_OK;
 	}
 	else
