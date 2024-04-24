@@ -75,10 +75,11 @@ int build_filter_chain(const char*  configuration_input)
 
 	print("Filter executor errors:");
 	Global_Filter_Executor = scgms::SFilter_Executor{ configuration.get(), nullptr, nullptr, errors };
-	errors.for_each([](auto str) {auto newstr = Narrow_WString(str);print(newstr.c_str());});
+	bool success = true;
+	errors.for_each([](auto str) {auto newstr = Narrow_WString(str);print(newstr.c_str());success = false;});
 	print("------------------------------------------");
 
-	if(Global_Filter_Executor)
+	if(Global_Filter_Executor && success)
 	{
 		print("Filter chain is ready to execute:");
 		print("------------------------------------------");
