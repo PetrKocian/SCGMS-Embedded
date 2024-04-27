@@ -23,14 +23,12 @@ const char * get_config_data()
 	return config_data;
 }
 
-void create_event(const TSCGMS_Event_Data *simple_event)
+bool create_event(const SCGMSConcept_Event_Data *simple_event)
 {
 	if (simple_event->event_code >= static_cast<std::underlying_type_t<scgms::NDevice_Event_Code>>(scgms::NDevice_Event_Code::count))
-		return FALSE;
+		return false;
 
 	scgms::UDevice_Event event_to_send{ static_cast<scgms::NDevice_Event_Code>(simple_event->event_code) };
-	event_to_send.device_id() = simple_event->device_id;
-	event_to_send.signal_id() = simple_event->signal_id;
 
 	event_to_send.device_time() = simple_event->device_time;
 	event_to_send.segment_id() = simple_event->segment_id;
@@ -55,7 +53,10 @@ void create_event(const TSCGMS_Event_Data *simple_event)
 	if(Global_Filter_Executor)
 	{
 		Global_Filter_Executor.Execute(std::move(event_to_send));
+		return true;
 	}
+
+	return false;
 }
 
 void create_level_event(double level_input)
