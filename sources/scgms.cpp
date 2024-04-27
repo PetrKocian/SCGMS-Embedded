@@ -23,7 +23,42 @@ const char * get_config_data()
 	return config_data;
 }
 
-void create_level_event(int level_input)
+void create_event(const TSCGMS_Event_Data *simple_event)
+{
+	if (simple_event->event_code >= static_cast<std::underlying_type_t<scgms::NDevice_Event_Code>>(scgms::NDevice_Event_Code::count))
+		return FALSE;
+
+	scgms::UDevice_Event event_to_send{ static_cast<scgms::NDevice_Event_Code>(simple_event->event_code) };
+	event_to_send.device_id() = simple_event->device_id;
+	event_to_send.signal_id() = simple_event->signal_id;
+
+	event_to_send.device_time() = simple_event->device_time;
+	event_to_send.segment_id() = simple_event->segment_id;
+
+	switch (scgms::UDevice_Event_internal::major_type(event_to_send.event_code())) {
+		case scgms::UDevice_Event_internal::NDevice_Event_Major_Type::level:
+			event_to_send.level() = simple_event->level;
+			break;
+
+		case scgms::UDevice_Event_internal::NDevice_Event_Major_Type::parameters:
+			event_to_send.parameters->add(simple_event->parameters, simple_event->parameters + simple_event->count);
+			break;
+
+		case scgms::UDevice_Event_internal::NDevice_Event_Major_Type::info:
+			event_to_send.info.set(simple_event->str);	
+			break;
+
+		default:
+			break;
+	}
+
+	if(Global_Filter_Executor)
+	{
+		Global_Filter_Executor.Execute(std::move(event_to_send));
+	}
+}
+
+void create_level_event(double level_input)
 {
 	scgms::UDevice_Event event{ scgms::NDevice_Event_Code::Level };
 	event.level() = level_input;
