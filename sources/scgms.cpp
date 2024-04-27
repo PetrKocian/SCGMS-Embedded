@@ -109,10 +109,10 @@ int build_filter_chain(const char*  configuration_input)
 	configuration->Load_From_Memory(configuration_input, strlen(configuration_input), errors.get());
 	print("------------------------------------------");
 
-	print("Filter executor errors:");
+	print("Filter executor construction:");
 	Global_Filter_Executor = scgms::SFilter_Executor{ configuration.get(), nullptr, nullptr, errors };
 	bool success = true;
-	errors.for_each([&success](auto str) {auto newstr = Narrow_WString(str);print(newstr.c_str());success = false;});
+	errors.for_each([&success](auto str) {print("error:");auto newstr = Narrow_WString(str);print(newstr.c_str());success = false;});
 	print("------------------------------------------");
 
 	if(Global_Filter_Executor && success)
