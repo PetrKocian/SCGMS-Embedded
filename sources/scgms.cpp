@@ -59,25 +59,6 @@ bool create_event(const SCGMSConcept_Event_Data *simple_event)
 	return false;
 }
 
-void create_level_event(double level_input)
-{
-	scgms::UDevice_Event event{ scgms::NDevice_Event_Code::Level };
-	event.level() = level_input;
-	if(Global_Filter_Executor)
-	{
-		Global_Filter_Executor.Execute(std::move(event));
-	}
-}
-
-void create_shutdown_event()
-{
-	scgms::UDevice_Event event{ scgms::NDevice_Event_Code::Shut_Down };
-	if(Global_Filter_Executor)
-	{
-		Global_Filter_Executor.Execute(std::move(event));
-	}
-}
-
 int build_filter_chain(const char*  configuration_input)
 {
 	const char* config;
