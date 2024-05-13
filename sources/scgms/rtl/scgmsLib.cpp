@@ -36,7 +36,7 @@
 
 #include "scgmsLib.h"
 #ifdef EMBEDDED
-#include "generated/filters.h"
+#include "staticLink.h"
 #elif
 #include "FilesystemLib.h"
 #endif
@@ -57,7 +57,7 @@ namespace scgms {
 
 		#ifdef EMBEDDED
 			void* resolve_scgms_symbol(const char* symbol_name) noexcept {
-				return resolve_generated_symbol(symbol_name);
+				return resolve_symbol_static(symbol_name);
 			}
 		#elif
 			CDynamic_Library gScgms_Library;
